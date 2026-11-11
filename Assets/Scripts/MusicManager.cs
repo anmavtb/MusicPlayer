@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Networking;
+using System;
 
-public class MusicManager : Singleton<MusicManager>
+public class MusicManager : MonoBehaviour
 {
-    [SerializeField] public List<AudioClip> musicList;
     private string playlistFolder;
+    public List<AudioClip> musicLibrary;
+    public event Action OnListInitialized;
 
     private void Awake()
     {
@@ -23,7 +25,7 @@ public class MusicManager : Singleton<MusicManager>
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        GetMusicPaths(playlistFolder);
+        StartCoroutine(GetMusicPaths(playlistFolder));
     }
 
     // Update is called once per frame
@@ -32,15 +34,16 @@ public class MusicManager : Singleton<MusicManager>
         
     }
 
-    private void GetMusicPaths(string _playlistFolder)
+    private IEnumerator GetMusicPaths(string _playlistFolder)
     {
         string[] files = Directory.GetFiles(_playlistFolder,"*.mp3");
 
         foreach (string file in files)
         {
             string uri = new System.Uri(file).AbsoluteUri;
-            StartCoroutine(LoadMusic(uri));
+            yield return StartCoroutine(LoadMusic(uri));
         }
+        OnListInitialized?.Invoke();
     }
 
     private IEnumerator LoadMusic(string _uri)
@@ -55,7 +58,7 @@ public class MusicManager : Singleton<MusicManager>
                 Debug.LogError("Error : " + request.error);
                 yield break;
             }
-            musicList.Add(DownloadHandlerAudioClip.GetContent(request));
+            musicLibrary.Add(DownloadHandlerAudioClip.GetContent(request));
         }
     }
 }

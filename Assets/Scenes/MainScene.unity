@@ -616,7 +616,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a02736f04030e0458f55ab180e3e108, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  musicManager: {fileID: 519420033}
   audioSource: {fileID: 1548987941}
+  playlist: []
   currentMusic: {fileID: 0}
   musicTitle: {fileID: 1722948869}
 --- !u!1 &537050226
