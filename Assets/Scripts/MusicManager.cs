@@ -40,13 +40,14 @@ public class MusicManager : MonoBehaviour
 
         foreach (string file in files)
         {
+            string musicName = Path.GetFileNameWithoutExtension(file);
             string uri = new System.Uri(file).AbsoluteUri;
-            yield return StartCoroutine(LoadMusic(uri));
+            yield return StartCoroutine(LoadMusic(uri, musicName));
         }
         OnListInitialized?.Invoke();
     }
 
-    private IEnumerator LoadMusic(string _uri)
+    private IEnumerator LoadMusic(string _uri, string _musicName)
     {
         using (UnityWebRequest request =
         UnityWebRequestMultimedia.GetAudioClip(_uri, AudioType.MPEG))
@@ -58,7 +59,9 @@ public class MusicManager : MonoBehaviour
                 Debug.LogError("Error : " + request.error);
                 yield break;
             }
-            musicLibrary.Add(DownloadHandlerAudioClip.GetContent(request));
+            AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
+            clip.name = _musicName;
+            musicLibrary.Add(clip);
         }
     }
 }

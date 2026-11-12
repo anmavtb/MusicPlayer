@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(MusicManager))]
 
@@ -14,6 +14,9 @@ public class AudioManager : MonoBehaviour
 
     [SerializeField] private AudioClip currentMusic;
     [SerializeField] private TextMeshProUGUI musicTitle;
+
+    [SerializeField] GameObject buttonPlay;
+    [SerializeField] GameObject buttonPause;
 
     private void Awake()
     {
@@ -40,16 +43,17 @@ public class AudioManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (currentMusic == null) return;
+        UpdateDisplay(currentMusic);
     }
 
     void UpdateDisplay(AudioClip _music)
     {
-        if (playlist.Count == 0 || _music == null) return;
-        DisplayName(_music);
+        if (playlist.Count == 0 || audioSource.clip == null || _music == null) return;
+        DisplayMusic(_music);
     }
 
-    void DisplayName(AudioClip _music)
+    void DisplayMusic(AudioClip _music)
     {
         musicTitle.text = _music.name;
     }
@@ -58,5 +62,25 @@ public class AudioManager : MonoBehaviour
     {
         audioSource.clip = _music;
         audioSource.Play();
+    }
+
+    public void PlayPauseMusic()
+    {
+        if (audioSource.isPlaying)
+        {
+            buttonPlay.SetActive(false);
+            buttonPause.SetActive(true);
+            audioSource.Pause();
+        }
+        else
+        {
+            buttonPlay.SetActive(true);
+            buttonPause.SetActive(false);
+            if (audioSource.time > 0)
+            {
+                audioSource.UnPause();
+            }
+            else PlayMusic(currentMusic);
+        }
     }
 }
