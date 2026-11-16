@@ -18,6 +18,9 @@ public class AudioManager : MonoBehaviour
     [SerializeField] GameObject buttonPlay;
     [SerializeField] GameObject buttonPause;
 
+    [SerializeField] bool isMusicPaused = false;
+    [SerializeField] bool isPlayListShuffle = false;
+
     private void Awake()
     {
         musicManager = GetComponent<MusicManager>();
@@ -35,21 +38,27 @@ public class AudioManager : MonoBehaviour
         {
             playlist.Add(music);
         }
-        currentMusic = playlist[0];
-        UpdateDisplay(currentMusic);
-        PlayMusic(currentMusic);
+        UpdateMusic(playlist[0]);
+        StartMusic(currentMusic);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (currentMusic == null) return;
+
+    }
+
+    void UpdateMusic(AudioClip _music)
+    {
+        currentMusic = _music;
+        audioSource.clip = currentMusic;
         UpdateDisplay(currentMusic);
+        StartMusic(currentMusic);
     }
 
     void UpdateDisplay(AudioClip _music)
     {
-        if (playlist.Count == 0 || audioSource.clip == null || _music == null) return;
+        if (playlist.Count == 0 || _music == null) return;
         DisplayMusic(_music);
     }
 
@@ -58,29 +67,74 @@ public class AudioManager : MonoBehaviour
         musicTitle.text = _music.name;
     }
 
-    void PlayMusic(AudioClip _music)
+    void StartMusic(AudioClip _music)
     {
-        audioSource.clip = _music;
         audioSource.Play();
+        if (isMusicPaused) audioSource.Pause();
     }
 
     public void PlayPauseMusic()
     {
-        if (audioSource.isPlaying)
+        if (!isMusicPaused)
         {
+            isMusicPaused = true;
             buttonPlay.SetActive(false);
             buttonPause.SetActive(true);
             audioSource.Pause();
         }
         else
         {
+            isMusicPaused = false;
             buttonPlay.SetActive(true);
             buttonPause.SetActive(false);
-            if (audioSource.time > 0)
+            audioSource.UnPause();
+        }
+    }
+
+    public void MusicNext()
+    {
+        UpdateIndex(1);
+    }
+
+    public void MusicBack()
+    {
+        if (audioSource.time >= (audioSource.clip.length * .1))
+        {
+            audioSource.time = 0;
+            return;
+        }
+        UpdateIndex(-1);
+    }
+
+    void UpdateIndex(int _direction)
+    {
+        int index = playlist.IndexOf(currentMusic);
+        if (index == -1) return;
+        index = (index + _direction + playlist.Count) % playlist.Count;
+        UpdateMusic(playlist[index]);
+        if (buttonPlay.activeSelf) StartMusic(currentMusic);
+    }
+
+    public void ShufflePlaylist()
+    {
+        if (!isPlayListShuffle)
+        {
+            isPlayListShuffle = true;
+            for (int i = playlist.Count - 1; i > 0; i--)
             {
-                audioSource.UnPause();
+                int randomIndex = Random.Range(0, i + 1);
+                AudioClip temp = playlist[i];
+                playlist[i] = playlist[randomIndex];
+                playlist[randomIndex] = temp;
             }
-            else PlayMusic(currentMusic);
+        }
+        else
+        {
+            isPlayListShuffle = false;
+            for (int i = 0; i < playlist.Count; i++)
+            {
+                playlist[i] = musicManager.musicLibrary[i];
+            }
         }
     }
 }
